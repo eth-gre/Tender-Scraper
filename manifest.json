@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Supertender",
+  "version": "1.0",
+  "description": "Buying for Victoria Scraper",
+  "content_scripts": [
+    {
+      "matches": ["https://www.tenders.vic.gov.au/tender/view*"],
+      "js": ["extract-tender.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.tenders.vic.gov.au/contract/view*"],
+      "js": ["extract-contract.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.tenders.vic.gov.au/tender/search*"],
+      "js": ["extract-search.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Supertender"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://www.tenders.vic.gov.au/*"
+  ]
+}
