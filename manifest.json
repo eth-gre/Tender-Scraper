@@ -15,6 +15,11 @@
       "run_at": "document_idle"
     },
     {
+      "matches": ["https://www.tenders.vic.gov.au/tender/result*"],
+      "js": ["extract-contract.js"],
+      "run_at": "document_idle"
+    },
+    {
       "matches": ["https://www.tenders.vic.gov.au/tender/search*"],
       "js": ["extract-search.js"],
       "run_at": "document_idle"
@@ -29,7 +34,8 @@
   },
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "downloads"
   ],
   "host_permissions": [
     "https://www.tenders.vic.gov.au/*"

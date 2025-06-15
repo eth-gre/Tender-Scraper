@@ -2,119 +2,138 @@
 console.log('Supertender: Contract page script loaded');
 
 function extractContractData() {
-  try {
-    const data = {};
+	try {
+		const data = {};
 
-    // Contract ID from page title
-    const pageTitleEl = document.querySelector('[name="page-title"]');
-    if (pageTitleEl) {
-      const titleText = pageTitleEl.textContent.trim();
-      if (titleText.startsWith('Contract - ')) {
-        data.contract_id = titleText.replace('Contract - ', '').trim();
-      }
-    }
+		// Find the tender number from the 'Associated with' field. 
+		// Sometimes the contract number is different so we must do it this way
+		const id_regex = /\(([^)]+)\)$/
+		const contract_text = findValueByLabel('Associated with Tender');
 
-    // Skip if no contract ID
-    if (!data.contract_id) {
-      console.log('No contract ID found on contract page');
-      return;
-    }
+		const contract_match = contract_text.match(id_regex)
 
-    // Helper function to find value by label
-    function findValueByLabel(labelText) {
-      const rows = document.querySelectorAll('div.row');
-      for (const row of rows) {
-        const span = row.querySelector('span');
-        if (span && span.textContent.includes(labelText)) {
-          const valueEl = row.querySelector('div.col-sm-8');
-          return valueEl ? valueEl.textContent.trim() : null;
-        }
-      }
-      return null;
-    }
+		if (contract_match) {
+			data.contract_id = contract_match[1];
+		}
+		else {
+			data.contract_id = null
+		}
 
-    // Contract details
-    data.contract_value = findValueByLabel('Total Value of the Contract');
-    data.number_of_submissions = findValueByLabel('Number of Submissions');
-    data.comment = findValueByLabel('Comments');
-    data.reason = findValueByLabel('Reason');
-    data.started_at = findValueByLabel('Starting Date');
-    data.expired_at = findValueByLabel('Expiry Date');
+		// Skip if no contract ID
+		if (!data.contract_id) {
+			console.log('No contract ID found on contract page');
+			return;
+		}
 
-    // Suppliers information
-    const supplierTable = document.querySelector('.table.tablesaw.tablesaw-stack.table-responsive');
-    if (supplierTable) {
-      const supplierRows = supplierTable.querySelectorAll('tr');
-      const suppliers = [];
+		// Helper function to find value by label
+		function findValueByLabel(labelText) {
+			const rows = document.querySelectorAll('div.row');
+			for (const row of rows) {
+				const span = row.querySelector('span');
+				if (span && span.textContent.includes(labelText)) {
+					const valueEl = row.querySelector('div.col-sm-8, div.col-sm-6');
+					return valueEl ? valueEl.textContent.trim() : null;
+				}
+			}
+			return null;
+		}
 
-      supplierRows.forEach(row => {
-        const supplier = {};
-        
-        // Supplier name (from b tag)
-        const nameEl = row.querySelector('b');
-        if (nameEl) {
-          supplier.supplier_name = nameEl.textContent.trim();
-        }
 
-        // ABN
-        const abnCell = row.querySelector('td');
-        const cells = row.querySelectorAll('td');
-        for (const cell of cells) {
-          const strongEl = cell.querySelector('strong');
-          if (strongEl && strongEl.textContent.includes('ABN')) {
-            supplier.abn = cell.textContent.replace(/ABN.*?:/i, '').trim();
-          }
-          if (strongEl && strongEl.textContent.includes('ACN')) {
-            supplier.acn = cell.textContent.replace(/ACN.*?:/i, '').trim();
-          }
-        }
+		// Extract all of the contract details
+		const value_text = findValueByLabel('Total Value of the Contract');
+		if (value_text) {
+			const value_regex = /\$(\d+(?:,\d{3})*\.\d{2})/
+			const value_match = value_text.match(value_regex)
+	
+			if (value_match) {
+				data.contract_value = value_match[1]
+			}
+			else {
+				data.contract_value = 0
+			}
+		} 
+		else {
+			data.contract_value = 0
+		}
 
-        // Only add if we found a supplier name
-        if (supplier.supplier_name) {
-          suppliers.push(supplier);
-        }
-      });
+		// The rest are just normal
+		data.number_of_submissions = findValueByLabel('Number of Submissions');
+		data.comment = findValueByLabel('Comments');
+		data.reason = findValueByLabel('Reason');
+		data.started_at = findValueByLabel('Starting Date');
+		data.expired_at = findValueByLabel('Expiry Date');
 
-      if (suppliers.length > 0) {
-        data.suppliers = suppliers;
-      }
-    }
 
-    // Add metadata
-    data.last_updated = new Date().toISOString();
-    data.source_page = 'contract';
+		// Suppliers information
+		const supplierTable = document.querySelector('.table.tablesaw.tablesaw-stack.table-responsive');
+		if (supplierTable) {
+			const supplierRows = supplierTable.querySelectorAll('tr.contractor');
+			const suppliers = [];
+			
+			supplierRows.forEach(row => {
+				console.log(row);
+				const supplier = {};
+				
+				// First cell should contain the supplier name in <strong><b> tags
+				const nameEl = row.querySelector('strong b, b');
+				if (nameEl) {
+					supplier.supplier_name = nameEl.textContent.trim();
+				}
+				
+				// Try to find the ABN and ACN
+				const detailRows = row.querySelectorAll('tr')
 
-    console.log(`Extracted contract data for ${data.contract_id}:`, data);
+				detailRows.forEach(detail => {
+					const infoTextEl = detail.querySelector('strong')
+					if (infoTextEl) {
+						const infoText = infoTextEl.textContent
+						
+						if (infoText == 'ACN') {
+							const possibleText = detail.querySelectorAll('td')[1]
+							console.log(possibleText);
+							supplier.acn = possibleText.textContent.trim()
+						}
+						if (infoText == 'ABN') {
+							const possibleText = detail.querySelectorAll('td')[1]
+							console.log(possibleText);
+							supplier.abn = possibleText.textContent.trim()
+						}
+					}
+				})
 
-    // Send to background script
-    chrome.runtime.sendMessage({
-      type: 'STORE_TENDER_DATA',
-      data: data
-    });
+				console.log('here');
+				
+				// Only add if we found a supplier name
+				if (supplier.supplier_name) {
+					suppliers.push(supplier);
+				}
+			});
+			
+			if (suppliers.length > 0) {
+				data.suppliers = suppliers;
+			}
+		}
 
-  } catch (error) {
-    console.error('Error extracting contract data:', error);
-  }
+		// Add metadata
+		data.last_updated = new Date().toISOString();
+
+		console.log(`Extracted contract data for ${data.contract_id}:`, data);
+
+		// Send to background script
+		chrome.runtime.sendMessage({
+			type: 'STORE_TENDER_DATA',
+			data: data
+		});
+
+	} catch (error) {
+		console.error('Error extracting contract data:', error);
+	}
 }
 
 // Extract data when page loads
 setTimeout(extractContractData, 1000);
 
-// Also extract when DOM changes
-// const observer = new MutationObserver((mutations) => {
-//   let shouldExtract = false;
-//   mutations.forEach(mutation => {
-//     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-//       shouldExtract = true;
-//     }
-//   });
-  
-//   if (shouldExtract) {
-//     setTimeout(extractContractData, 500);
-//   }
-// });
-
 observer.observe(document.body, {
-  childList: true,
-  subtree: true
+	childList: true,
+	subtree: true
 });
