@@ -247,6 +247,11 @@ function extractRowData(row, index) {
 		data.status = statusEl.textContent.trim();
 	}
 
+	let typeEl = row.querySelector('td.tender-code-state > span.tablesaw-cell-content');
+	if (typeEl) {
+		data.type = typeEl.lastChild.textContent.trim();
+	}
+
 	// Body name (first line-item-detail)
 	const bodyEl = row.querySelector('.line-item-detail');
 	if (bodyEl) {
@@ -288,16 +293,17 @@ function extractRowData(row, index) {
 
 	// Add metadata
 	data.last_updated = new Date().toISOString();
-	data.extraction_attempt = extractionAttempts;
-	data.row_index = index;
+	// data.extraction_attempt = extractionAttempts;
+	// data.row_index = index;
+	data.search = true;
 
-	console.log(`Row ${index}: Extracted search data for ${data.contract_id}:`, {
-		contract_id: data.contract_id,
-		title: data.title ? data.title.substring(0, 50) + '...' : 'N/A',
-		status: data.status,
-		body_name: data.body_name,
-		categories_count: data.categories ? data.categories.length : 0
-	});
+	// console.log(`Row ${index}: Extracted search data for ${data.contract_id}:`, {
+	// 	contract_id: data.contract_id,
+	// 	title: data.title ? data.title.substring(0, 50) + '...' : 'N/A',
+	// 	status: data.status,
+	// 	body_name: data.body_name,
+	// 	categories_count: data.categories ? data.categories.length : 0
+	// });
 
 	return data;
 }
@@ -306,7 +312,7 @@ function extractRowData(row, index) {
 setTimeout(() => {
 	console.log('Initial search data extraction (2s delay)...');
 	extractSearchData();
-}, 2000);
+}, 1500);
 
 // Additional extraction after longer delay in case content loads slowly
 setTimeout(() => {

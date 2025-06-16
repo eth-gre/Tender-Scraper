@@ -5,6 +5,8 @@ function extractTenderData() {
 	try {
 		const data = {};
 
+		data.tender = true
+
 		// Contract ID from page title
 		const pageTitleEl = document.querySelector('[name="page-title"]');
 		if (pageTitleEl) {
@@ -20,21 +22,32 @@ function extractTenderData() {
 			return;
 		}
 
-		// Description
-		const descEl = document.querySelector('#tenderDescription p');
+		// Description (extract the fourth div and keep all the text)
+		const descEl = document.querySelectorAll('#tenderDescription div')[3];
+		console.log(descEl);
 		if (descEl) {
 			data.description = descEl.textContent.trim();
 		}
 
 		// Contact information
-		const contactNameEl = document.querySelector('div.otherContact li');
-		if (contactNameEl) {
-			data.contact_name = contactNameEl.textContent.trim();
-		}
+		// There can either be MULTIPLE with 'contact' or just one with 'otherContact'
+		const otherContactEl = document.querySelector('div.otherContact')
+		data.contact_name = []
+		
+		if (otherContactEl) {
+			const contactNameEl = document.querySelector('div.otherContact li');
 
-		const contactEmailEl = document.querySelector('div.otherContact a');
-		if (contactEmailEl) {
-			data.contact_email = contactEmailEl.textContent.trim();
+			data.contact_name.push(contactNameEl.textContent.trim());
+
+		}
+		// Try a backup option where we look for 'contact' instead of otherContact
+		else {
+			const contactEls = document.querySelectorAll('div.contact');
+
+			contactEls.forEach(contact => {
+				const name = contact.querySelector('li').textContent.trim()
+				data.contact_name.push(name);
+			})
 		}
 
 		// Add metadata

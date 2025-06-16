@@ -36,11 +36,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Fields that should NOT be sanitized (keep original formatting)
 const SANITIZATION_EXEMPT_FIELDS = [
-	'description',
 	'detailed_description',
 	'requirements',
 	'specifications',
 	'notes',
+	'reason',
 	'comments',
 	'additional_info'
 ];

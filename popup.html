@@ -1,93 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supertender</title>
-    <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-    <div class="container">
-        <header class="header">
-            <div class="logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h1>Supertender</h1>
-            </div>
-            <div class="version">v1.0</div>
-        </header>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="totalTenders">0</div>
-                <div class="stat-label">Total Tenders</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="openTenders">0</div>
-                <div class="stat-label">Open</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="closedTenders">0</div>
-                <div class="stat-label">Closed</div>
-            </div>
-        </div>
-
-        <div class="actions">
-            <button id="refreshBtn" class="btn btn-primary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 4v6h6m16-6v6h-6m-5 10a9 9 0 110-18 9 9 0 010 18z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Refresh Data
-            </button>
-            <button id="exportBtn" class="btn btn-secondary">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-5l5-5 5 5m-5-5v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Export CSV
-            </button>
-        </div>
-
-        <div class="debug-section">
-            <h3>Debug Information</h3>
-            <div class="debug-info">
-                <div class="debug-item">
-                    <span class="debug-label">Current URL:</span>
-                    <span class="debug-value" id="currentUrl">Loading...</span>
-                </div>
-                <div class="debug-item">
-                    <span class="debug-label">Last Updated:</span>
-                    <span class="debug-value" id="lastUpdated">Never</span>
-                </div>
-                <div class="debug-item">
-                    <span class="debug-label">Storage Size:</span>
-                    <span class="debug-value" id="storageSize">0 KB</span>
-                </div>
-                <div class="debug-item">
-                    <span class="debug-label">Storage Items:</span>
-                    <span class="debug-value" id="storageItems">0</span>
-                </div>
-            </div>
-            <div class="debug-buttons">
-                <button id="testStorageBtn" class="btn btn-secondary">Test Storage</button>
-                <button id="clearDataBtn" class="btn btn-danger">Clear All Data</button>
-            </div>
-        </div>
-
-        <div class="recent-section">
-            <h3>Recent Tenders</h3>
-            <div id="recentTenders" class="tender-list">
-                <div class="empty-state">No tenders found. Visit tender pages to start collecting data.</div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <div class="footer-text">
-                <span id="statusMessage">Ready to scrape tender data</span>
-            </div>
-        </div>
-    </div>
-
-    <script src="popup.js"></script>
-</body>
+  <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Supertender</title>
+	<link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+	<div class="container">
+	  <header class="header">
+		<div class="logo">
+		  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+		  </svg>
+		  <h1>Supertender</h1>
+		</div>
+		<div class="version">v1.0</div>
+	  </header>
+	  <div class="stats-grid">
+		<div class="stat-card">
+		  <div class="stat-number" id="totalTenders">0</div>
+		  <div class="stat-label">Total Tenders</div>
+		</div>
+		<div class="stat-card">
+		  <div class="stat-number" id="openTenders">0</div>
+		  <div class="stat-label">Open</div>
+		</div>
+		<div class="stat-card">
+		  <div class="stat-number" id="closedTenders">0</div>
+		  <div class="stat-label">Closed</div>
+		</div>
+	  </div>
+	  <div class="actions">
+		<button id="openTenderLinksBtn" class="btn btn-primary" style="width: 100%;">
+		  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+		  </svg> Open Tender Links </button>
+	  </div>
+	  <div class="actions">
+		<!-- <button id="refreshBtn" class="btn btn-secondary">
+		  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M1 4v6h6m16-6v6h-6m-5 10a9 9 0 110-18 9 9 0 010 18z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+		  </svg> Refresh Data </button> -->
+		<button id="exportCSVBtn" class="btn btn-secondary">
+		  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-5l5-5 5 5m-5-5v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+		  </svg> Export CSV </button>
+		<button id="exportJSONBtn" class="btn btn-secondary">
+		  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4m4-5l5-5 5 5m-5-5v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+		  </svg> Export JSON </button>
+	  </div>
+	  <div class="recent-section">
+		<h3>Recent Tenders</h3>
+		<div id="recentTenders" class="tender-list">
+		  <div class="empty-state">No tenders found. Visit tender pages to start collecting data.</div>
+		</div>
+	  </div>
+	  <div class="debug-section">
+		<h3>Debug Information</h3>
+		<div class="debug-info">
+		  <div class="debug-item">
+			<span class="debug-label">Current URL:</span>
+			<span class="debug-value" id="currentUrl">Loading...</span>
+		  </div>
+		  <div class="debug-item">
+			<span class="debug-label">Last Updated:</span>
+			<span class="debug-value" id="lastUpdated">Never</span>
+		  </div>
+		  <div class="debug-item">
+			<span class="debug-label">Storage Size:</span>
+			<span class="debug-value" id="storageSize">0 KB</span>
+		  </div>
+		  <div class="debug-item">
+			<span class="debug-label">Storage Items:</span>
+			<span class="debug-value" id="storageItems">0</span>
+		  </div>
+		</div>
+		<div class="debug-buttons">
+		  <button id="testStorageBtn" class="btn btn-secondary">Test Storage</button>
+		  <button id="clearDataBtn" class="btn btn-danger">Clear All Data</button>
+		</div>
+	  </div>
+	  <div class="footer">
+		<div class="footer-text">
+		  <span id="statusMessage">Ready to scrape tender data</span>
+		</div>
+	  </div>
+	</div>
+	<script src="popup.js"></script>
+  </body>
 </html>

@@ -5,6 +5,8 @@ function extractContractData() {
 	try {
 		const data = {};
 
+		data.contract = true
+
 		// Find the tender number from the 'Associated with' field. 
 		// Sometimes the contract number is different so we must do it this way
 		const id_regex = /\(([^)]+)\)$/
