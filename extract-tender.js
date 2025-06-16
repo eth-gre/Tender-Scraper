@@ -22,6 +22,17 @@ function extractTenderData() {
 			return;
 		}
 
+		// Get the link to the contract page
+		const linkEl = document.querySelector('#tenderResults a')
+		console.log(linkEl);
+		if (linkEl) {
+			const contract_link = linkEl.getAttribute('href')
+			data.link_contract = 'https://www.tenders.vic.gov.au' + contract_link;
+		}
+		else {
+			console.log('no link :(');
+		}
+
 		// Description (extract the fourth div and keep all the text)
 		const descEl = document.querySelectorAll('#tenderDescription div')[3];
 		console.log(descEl);

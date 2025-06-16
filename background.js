@@ -36,51 +36,119 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Fields that should NOT be sanitized (keep original formatting)
 const SANITIZATION_EXEMPT_FIELDS = [
-	'detailed_description',
-	'requirements',
-	'specifications',
-	'notes',
+	'description',
 	'reason',
 	'comments',
-	'additional_info'
 ];
 
-// Sanitize text by removing weird whitespace but preserving normal spaces
-function sanitizeText(text) {
-	if (typeof text !== 'string') return text;
-	
+/**
+ * Sanitizes text for standard fields: replaces all problematic whitespace and control chars,
+ * collapses all whitespace (horizontal and vertical) to single spaces, and trims.
+ * @param {string} text The input string.
+ * @returns {string} The sanitized string.
+ */
+function sanitizeSingleLine(text) {
+	if (typeof text !== 'string') {
+		return text; // Return non-strings as they are
+	}
+
 	return text
-		.replace(/[\r\n\t\f\v]/g, ' ')  // Replace newlines, tabs, form feeds, vertical tabs with spaces
-		.replace(/&nbsp;/g, ' ')        // Replace HTML non-breaking spaces
-		.replace(/\u00A0/g, ' ')        // Replace Unicode non-breaking spaces
-		.replace(/\s+/g, ' ')           // Collapse multiple spaces into single space
-		.trim();                        // Remove leading/trailing whitespace
+		// Replace HTML non-breaking spaces and Unicode nbsp with a standard space
+		.replace(/ /g, ' ')
+		.replace(/\u00A0/g, ' ')
+		// Remove common control characters (except essential whitespace handled below)
+		// This targets C0 and C1 control codes and DEL.
+		.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '')
+		// Collapse *all* whitespace (spaces, tabs, newlines, carriage returns, etc.) into single space
+		.replace(/\s+/g, ' ')
+		// Remove leading/trailing whitespace
+		.trim();
 }
 
-// Sanitize an object's fields recursively
+/**
+ * Sanitizes text for block fields (like descriptions): preserves newlines (limiting to 2),
+ * replaces other problematic whitespace/tabs/nbsp with single spaces, removes control chars,
+ * collapses multiple horizontal spaces, and trims.
+ * @param {string} text The input string.
+ * @returns {string} The sanitized string.
+ */
+function sanitizeMultiLine(text) {
+	if (typeof text !== 'string') {
+		return text; // Return non-strings as they are
+	}
+
+	let sanitized = text;
+
+	// 1. Standardize line endings (\r\n or \r to \n)
+	sanitized = sanitized.replace(/\r\n?/g, '\n');
+
+	// 2. Limit consecutive newlines to a maximum of two (\n\n)
+	sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
+
+	// 3. Replace problematic *horizontal* whitespace (tabs, form feeds, vertical tabs, nbsp)
+	// and sequences of *spaces* with a single space.
+	// This handles cases like multiple tabs/spaces after a newline.
+	// The space character ' ' is included in the character set.
+	sanitized = sanitized.replace(/[ \t\f\v \u00A0]+/g, ' ');
+
+	// 4. Remove common control characters (except newline which is handled)
+	sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+
+	// 5. Remove leading/trailing whitespace (including spaces and newlines)
+	sanitized = sanitized.trim();
+
+	return sanitized;
+}
+
+
+/**
+ * Sanitizes an object's fields recursively, applying different sanitization
+ * based on the field key.
+ * @param {any} data The data object or array to sanitize.
+ * @returns {any} The sanitized data.
+ */
 function sanitizeData(data) {
-	if (!data || typeof data !== 'object') return data;
-	
+	// Base case: If not an object or is null, return as-is
+	if (!data || typeof data !== 'object') {
+		return data;
+	}
+
+	// Create a new object or array based on the input type
 	const sanitized = Array.isArray(data) ? [] : {};
-	
+
+	// Iterate over keys/values
 	for (const [key, value] of Object.entries(data)) {
-		if (Array.isArray(value)) {
-			// Sanitize array elements unless the field is exempt
-			sanitized[key] = SANITIZATION_EXEMPT_FIELDS.includes(key) 
-				? value 
-				: value.map(item => typeof item === 'string' ? sanitizeText(item) : sanitizeData(item));
-		} else if (typeof value === 'object' && value !== null) {
-			// Recursively sanitize nested objects
+		// Handle null explicitly to preserve it
+		if (value === null) {
+			sanitized[key] = null;
+		}
+		// Recursively sanitize arrays (elements might need sanitization too)
+		else if (Array.isArray(value)) {
+			// Map over array elements, applying sanitizeData recursively to each.
+			// This ensures that if an array element is an object or another array,
+			// or if it's a string that needs key-based sanitization, it's handled.
+			sanitized[key] = value.map(item => sanitizeData(item));
+		}
+		// Recursively sanitize nested objects
+		else if (typeof value === 'object') {
 			sanitized[key] = sanitizeData(value);
-		} else if (typeof value === 'string') {
-			// Sanitize string values unless the field is exempt
-			sanitized[key] = SANITIZATION_EXEMPT_FIELDS.includes(key) ? value : sanitizeText(value);
-		} else {
-			// Keep other types as-is
+		}
+		// Sanitize string values based on exemption list
+		else if (typeof value === 'string') {
+			if (SANITIZATION_EXEMPT_FIELDS.includes(key)) {
+				// Use multiline sanitizer for exempt fields
+				sanitized[key] = sanitizeMultiLine(value);
+			} else {
+				// Use singleline sanitizer for other fields
+				sanitized[key] = sanitizeSingleLine(value);
+			}
+		}
+		// Keep other types (numbers, booleans, etc.) as-is
+		else {
 			sanitized[key] = value;
 		}
 	}
-	
+
 	return sanitized;
 }
 

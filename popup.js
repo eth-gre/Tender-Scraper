@@ -397,7 +397,7 @@ function exportToCSV() {
 		'contract_id', 'title', 'description', 'type', 'status', 'body_name', 'categories',
 		'opened_at', 'closed_at', 'started_at', 'expired_at', 'contract_value',
 		'number_of_submissions', 'comment', 'reason', 'contact_name',
-		'suppliers', 'link', 'last_updated', 'search', 'tender', 'contract'
+		'suppliers', 'link', 'link_contract', 'last_updated', 'search', 'tender', 'contract'
 	];
 
 	// Convert data to CSV format
