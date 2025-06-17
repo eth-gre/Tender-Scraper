@@ -64,6 +64,7 @@ function extractContractData() {
 		data.reason = findValueByLabel('Reason');
 		data.started_at = findValueByLabel('Starting Date');
 		data.expired_at = findValueByLabel('Expiry Date');
+		data.awarded_at = findValueByLabel('Date');
 
 
 		// Suppliers information

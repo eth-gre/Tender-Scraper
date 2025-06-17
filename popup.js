@@ -94,6 +94,7 @@ function updateUI() {
 	
 	// Update open tender links button
 	updateOpenTenderLinksButton(tenders);
+	updateOpenContractLinksButton(tenders);
 	
 	// Update status
 	if (totalCount > 0) {
@@ -360,7 +361,7 @@ function setupEventListeners() {
     }
 
     if (openContractLinksBtn) {
-        openTenderLinksBtn.addEventListener('click', openContractLinks);
+        openContractLinksBtn.addEventListener('click', openContractLinks);
     }
     
     if (clearDataBtn) {
