@@ -12,6 +12,7 @@ const exportCSVBtn = document.getElementById('exportCSVBtn');
 const exportJSONBtn = document.getElementById('exportJSONBtn');
 const clearDataBtn = document.getElementById('clearDataBtn');
 const openTenderLinksBtn = document.getElementById('openTenderLinksBtn');
+const openContractLinksBtn = document.getElementById('openContractLinksBtn');
 const currentUrlEl = document.getElementById('currentUrl');
 const lastUpdatedEl = document.getElementById('lastUpdated');
 const storageSizeEl = document.getElementById('storageSize');
@@ -143,7 +144,7 @@ function updateOpenTenderLinksButton(tenders) {
 	
 	if (openTenderLinksBtn) {
 		const count = unscrapedTenders.length;
-		const buttonText = count > 0 ? `Open ${Math.min(count, 10)} Tender Links` : 'No Tender Links to Open';
+		const buttonText = count > 0 ? `Open ${Math.min(count, 10)} Tenders` : 'No Tenders';
 		openTenderLinksBtn.innerHTML = `
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 				<path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -156,6 +157,29 @@ function updateOpenTenderLinksButton(tenders) {
 			openTenderLinksBtn.classList.add('btn-disabled');
 		} else {
 			openTenderLinksBtn.classList.remove('btn-disabled');
+		}
+	}
+}
+function updateOpenContractLinksButton(tenders) {
+	const unscrapedTenders = tenders.filter(tender => 
+		tender.link_contract && !tender.contract
+	);
+	
+	if (openContractLinksBtn) {
+		const count = unscrapedTenders.length;
+		const buttonText = count > 0 ? `Open ${Math.min(count, 10)} Contracts` : 'No Contracts';
+		openContractLinksBtn.innerHTML = `
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+			${buttonText}
+		`;
+		openContractLinksBtn.disabled = count === 0;
+		
+		if (count === 0) {
+			openContractLinksBtn.classList.add('btn-disabled');
+		} else {
+			openContractLinksBtn.classList.remove('btn-disabled');
 		}
 	}
 }
@@ -255,6 +279,38 @@ async function openTenderLinks() {
 	}
 }
 
+// Open contract links in new tabs
+async function openContractLinks() {
+	const tenders = Object.values(allTenderData);
+	const unscrapedTenders = tenders.filter(tender => 
+		tender.link_contract && !tender.contract
+	);
+	
+	if (unscrapedTenders.length === 0) {
+		statusMessageEl.textContent = 'No contract links to open';
+		return;
+	}
+	
+	// Take up to 10 tenders
+	const tendersToOpen = unscrapedTenders.slice(0, 10);
+	
+	try {
+		// Open each link in a new tab
+		for (const tender of tendersToOpen) {
+			await chrome.tabs.create({ url: tender.link_contract, active: false });
+		}
+		
+		statusMessageEl.textContent = `Opened ${tendersToOpen.length} contract links in new tabs`;
+		
+		// Update button state
+		updateOpenContractLinksButton(tenders);
+		
+	} catch (error) {
+		console.error('Error opening contract links:', error);
+		statusMessageEl.textContent = 'Error opening contract links';
+	}
+}
+
 // Setup event listeners
 function setupEventListeners() {
     // Check if elements exist before adding listeners
@@ -301,6 +357,10 @@ function setupEventListeners() {
     
     if (openTenderLinksBtn) {
         openTenderLinksBtn.addEventListener('click', openTenderLinks);
+    }
+
+    if (openContractLinksBtn) {
+        openTenderLinksBtn.addEventListener('click', openContractLinks);
     }
     
     if (clearDataBtn) {

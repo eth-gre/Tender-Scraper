@@ -255,7 +255,7 @@ function extractRowData(row, index) {
 	// Body name (first line-item-detail)
 	const bodyEl = row.querySelector('.line-item-detail');
 	if (bodyEl) {
-		data.body_name = bodyEl.textContent.trim();
+		data.body_name = bodyEl.textContent.replace("Issued by:", '').trim();
 	}
 
 	// Categories (all line-item-detail after first)
