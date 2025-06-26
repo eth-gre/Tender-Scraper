@@ -1,3 +1,6 @@
+# About
+Yet another vibe coded extension to complete a very specific task that I don't want to do manually. Manually extacts data and merges it from Buying for Victoria and can then be easily exported. Yeah, non existent code quality here but that wasn't the point :)
+
 # Scraping Hints
 
 ## General tips
